@@ -1,0 +1,10 @@
+Name, time, route1, route2, percentage
+/Users/lino/Documents/python/fujitsuclone/TSP_data/ALL_tsp/berlin52.tsp,1.209022045135498,7544.365901904087,7544.365901904087,1.0
+/Users/lino/Documents/python/fujitsuclone/TSP_data/ALL_tsp/EUR101.tsp,4.407015085220337,243.65886017338303,248.89478758682517,0.979
+/Users/lino/Documents/python/fujitsuclone/TSP_data/ALL_tsp/a280.tsp,26.387120723724365,2620.527659311959,2743.546105052466,0.955
+/Users/lino/Documents/python/fujitsuclone/TSP_data/ALL_tsp/d493.tsp,98.81092095375061,37577.5191921836,41140.07581944805,0.913
+/Users/lino/Documents/python/fujitsuclone/TSP_data/ALL_tsp/u724.tsp,162.1193811893463,44422.96830549741,46420.04410946067,0.957
+/Users/lino/Documents/python/fujitsuclone/TSP_data/ALL_tsp/nrw1379.tsp,571.4672999382019,59546.22618428509,61631.92568578193,0.966
+/Users/lino/Documents/python/fujitsuclone/TSP_data/ALL_tsp/pcb1173.tsp,376.0491142272949,63492.36242204379,69040.00980030808,0.92
+/Users/lino/Documents/python/fujitsuclone/TSP_data/ALL_tsp/u2152.tsp,1122.982694864273,102936.58776690802,114216.92141022628,0.901
+/Users/lino/Documents/python/fujitsuclone/TSP_data/ALL_tsp/d1655.tsp,578.4229879379272,81573.43514102986,79977.50831787343,1.02
