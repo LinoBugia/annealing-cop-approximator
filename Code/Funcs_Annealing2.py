@@ -526,7 +526,7 @@ def Generate_Cooling_Schedule(cooling_param:list,steps:int)->list[float]:
             c = cooling_param[1]
             Number_of_Steps = cooling_param[2]
             for _ in range(Number_of_Steps):
-                T.append((np.log(1+step))/c)
+                T.append(c/(np.log(1+pow(step, 2.22))))
             
         elif cooling_param[0] ==  "exponential":
             c =cooling_param[1]
