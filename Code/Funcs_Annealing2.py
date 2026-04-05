@@ -125,7 +125,10 @@ def evalPBF(pbf:dict[tuple:float], varAssignement:dict[int:bool]):
 
     returns: Evaluated pbf as a double
     """
-    out=0
+    if () in pbf.keys():
+        out=pbf[()]
+    else:
+        out = 0
     for monomial in pbf:
         impacts = True
         for var in monomial:
@@ -184,20 +187,17 @@ def modificate_update_deltaE(varAssignement,deltaE,vars:list,pbf,pbf_var_dict):
             for x in mon:
                 if x != var:
 
-    ### TODO in eine Funktion umbauen mit params mon, pbf[mon], varAssignement, x , var 
-                    #erase old contribution
-                    E2 = Eval_Delta_Energy({mon:pbf[mon]},[mon],varAssignement,x)               #funktioniert!!!!
-                    deltaE[x] -= E2 
-                    #Test=Eval_Delta_Energy_flipped_var({mon:pbf[mon]},[mon],varAssignement,x,var)
-                    if varAssignement[var] == 0:varAssignement[var] = 1
-                    else:varAssignement[var] = 0    
-                    E2 = Eval_Delta_Energy({mon:pbf[mon]},[mon],varAssignement,x) 
+
                     if varAssignement[var] == 0:
-                        deltaE[x] -= E2 
                         varAssignement[var] = 1
-                    else:
+                        E2 = Eval_Delta_Energy({mon:pbf[mon]},[mon],varAssignement,x) 
                         deltaE[x] += E2 
-                        varAssignement[var] = 0     
+                        varAssignement[var] = 0
+                    else:
+                        E2 = Eval_Delta_Energy({mon:pbf[mon]},[mon],varAssignement,x)               #funktioniert!!!!
+                        deltaE[x] -= E2                         
+
+   
         if varAssignement[var] == 0:varAssignement[var] = 1
         else:varAssignement[var] = 0  
 

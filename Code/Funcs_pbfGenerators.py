@@ -381,15 +381,17 @@ def GenerateNumberPartitioningpbf(numbers: list[float])-> dict[tuple:float]:
     pbf = dict()
 
     #TODO
-    #pbf[()]=sum(numbers)^2
+    pbf[()]=((sum(numbers))**2 )/2
     # expression (sum n_i* x_i)^2 = sum n_i + comb(n_i) 
     for i in range(len(numbers)):
-        pbf[(i,)]=numbers[i]*(numbers[i]-sum(numbers))*4
+        pbf[(i,)]=-4*numbers[i]*(sum(numbers)-numbers[i])
+        
+    
     combs = combinations(range(len(numbers)),2)
     
     for comb in combs:
-        pbf[comb]=numbers[comb[0]]*numbers[comb[1]]*4
-        pbf[(comb[1],comb[0])]=numbers[comb[0]]*numbers[comb[1]]*4
+        pbf[comb]=numbers[comb[0]]*numbers[comb[1]]*8
+        #pbf[(comb[1],comb[0])]=numbers[comb[0]]*numbers[comb[1]]*4
     return pbf
 
 def GenerateGraphBinaryClustering_pbf(coords):

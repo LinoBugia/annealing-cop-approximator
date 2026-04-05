@@ -123,6 +123,8 @@ def pbf_min_solver(pbf : dict[tuple:float],pbf_var_dict: dict[int:tuple] ,
     Min_varAssignements = [] 
     Qs =[]
     result_List=[]
+    time_init1=0
+    time_init2=0
     #generate cooling schedule
     
     if type_alg=="scaAnnealing":
@@ -170,10 +172,13 @@ def pbf_min_solver(pbf : dict[tuple:float],pbf_var_dict: dict[int:tuple] ,
         else:
             initial_varAssignment =getInitialVarAssignement(pbf,seed_gen_initial_varAssignment)
         start_time_eval =time.time()
+        #
         deltaE_init=[0]*len(initial_varAssignment)
-        for i in range(len(deltaE_init)):
+        #deltaE_init = dict()
+        for i in range(len(initial_varAssignment)):
             deltaE_init[i]=Eval_Delta_Energy(pbf, pbf_var_dict[i],initial_varAssignment,i)
-        print("time evaluate delta E init: " + str(time.time() - start_time_eval))
+        time_init1=time.time() - start_time_eval
+        print("time evaluate delta E init: " + str(time_init1))
     elif type_alg =="simulatedAnnealing" or "scaAnnealing":
         
         if initial_varAssignement_pre!=[]:
@@ -190,12 +195,13 @@ def pbf_min_solver(pbf : dict[tuple:float],pbf_var_dict: dict[int:tuple] ,
     start_time_eval =time.time()
     E_init = evalPBF(pbf,initial_varAssignment)
     #print(E_init)
-    print("time evaluate E init: " + str(time.time() - start_time_eval))
-
-    start_time_eval =time.time()
-    Eval_Delta_Energy(pbf,pbf_var_dict[0],initial_varAssignment,1)
-    time_Edelta = time.time() - start_time_eval
-    print("time evaluate E delta: " + str(time_Edelta))
+    time_init2=time.time() - start_time_eval
+    print("time evaluate E init: " + str(time_init2))
+    if 0:
+        start_time_eval =time.time()
+        Eval_Delta_Energy(pbf,pbf_var_dict[0],initial_varAssignment,1)
+        time_Edelta = time.time() - start_time_eval
+        print("time evaluate E delta: " + str(time_Edelta))
     #if type_alg=="digitalAnnealing_TSP":
     #    print("Approximated Time eval "+str(time_Edelta*steps*num_MC))
     #else:
@@ -231,9 +237,9 @@ def pbf_min_solver(pbf : dict[tuple:float],pbf_var_dict: dict[int:tuple] ,
                 seed_gen_initial=random.randint(0,10000000000)
                 initial_varAssignment =getInitialVarAssignement(pbf,seed_gen_initial)
                 E_init = evalPBF(pbf,initial_varAssignment)    
-                deltaE_init=[0]*len(initial_varAssignment)
-                for z in range(len(deltaE_init)):
-                    deltaE_init[z]=Eval_Delta_Energy(pbf, pbf_var_dict[z],initial_varAssignment,z)
+                #deltaE_init=[0]*len(initial_varAssignment)
+                #for z in range(len(deltaE_init)):
+                #    deltaE_init[z]=Eval_Delta_Energy(pbf, pbf_var_dict[z],initial_varAssignment,z)
             varAssignement=initial_varAssignment.copy()
             #Print_VarAssigmentCommandline(list(varAssignement.values()))
             if type_alg == "simulatedAnnealing":
@@ -272,7 +278,7 @@ def pbf_min_solver(pbf : dict[tuple:float],pbf_var_dict: dict[int:tuple] ,
         filename = 'Evaluation_'+str(datetime.date.today())+'.csv'
 
         if os.path.exists(os.path.join(eval_directory+"/Evaluation_"+str(datetime.date.today()),filename))==0:
-            columns = ["type_alg","ID","time","bestMin","seed_gen","variables","degree","monomials_pbf","tpye_cooling","T_start","T_end"]
+            columns = ["type_alg","ID","time","timegen1","timegen2","bestMin","seed_gen","variables","degree","monomials_pbf","tpye_cooling","T_start","T_end"]
             df = pd.DataFrame(list(),columns=columns)
             df.to_csv(os.path.join(eval_directory+"/Evaluation_"+str(datetime.date.today()),filename))
 
@@ -303,7 +309,7 @@ def pbf_min_solver(pbf : dict[tuple:float],pbf_var_dict: dict[int:tuple] ,
         df.to_csv(addinfo_directory+"/Evaluation_"+str(datetime.date.today())+"_"+ID_run +"_addinfo.csv")  
         with open(os.path.join(eval_directory+"/Evaluation_"+str(datetime.date.today()),filename), "a") as csvfile:
             csvwriter =csv.writer(csvfile)
-            row = [type_alg,ID_run,np.sum(ExecTimes),np.min(Mins),seed_gen_initial_varAssignment,len(varAssignement.keys()),len(max(list(pbf.keys()),key =len)),len(pbf.keys()),cooling_param[0],cooling_param[1],cooling_param[2]] #TODO
+            row = [type_alg,ID_run,np.sum(ExecTimes),time_init1,time_init2,np.min(Mins),seed_gen_initial_varAssignment,len(varAssignement.keys()),len(max(list(pbf.keys()),key =len)),len(pbf.keys()),cooling_param[0],cooling_param[1],cooling_param[2]] #TODO
             csvwriter.writerow(row)     
     if visual_inst:
         fig = VisualizeRuns(pbf,type_alg, num_MC,offset_increase_rate,Trajectories,Mins,ExecTimes,T,Qs,Min_varAssignements,initial_varAssignment,trans_dict=trans_dict,coords=coords)

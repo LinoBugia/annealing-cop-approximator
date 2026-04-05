@@ -219,7 +219,7 @@ def DigitalAnnealing_old(E_init:float,delta_E_init,pbf:dict[tuple:float],pbf_var
     return vals,Min_varAssignement
 
 
-def DigitalAnnealing(E_init:float,deltaE:list[float],pbf:dict[tuple:float],pbf_var_dict:dict[int:tuple],steps:int,varAssignement:dict[int:bool],
+def DigitalAnnealing(E_init:float,deltaE,pbf:dict[tuple:float],pbf_var_dict:dict[int:tuple],steps:int,varAssignement:dict[int:bool],
                      Ts:list[float],save_addinfo:bool,seed_rand:int,offset_increase_rate:int,Ising=False)->list[list[float],list[bool]]:
 
     """
