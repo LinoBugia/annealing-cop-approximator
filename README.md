@@ -26,7 +26,7 @@ This repository contains the practical implementation component of the Master's 
 
 All optimization problems in this project are encoded as **Pseudo-Boolean Functions (PBFs)**:
 
-$$P : \mathbb{R}^n \to \mathbb{R}, \quad P(x) = \sum_{S \subseteq \{1,\ldots,n\}} a_S \prod_{k \in S} x_k$$
+$$P : \mathbb{F}^n \to \mathbb{R}, \quad P(x) = \sum_{S \subseteq \{1,\ldots,n\}} a_S \prod_{k \in S} x_k$$
 
 PBFs are represented in Python as dictionaries mapping monomial tuples to real coefficients:
 
@@ -49,9 +49,9 @@ This general representation covers both **QUBO** (degree ≤ 2) and **PUBO** (hi
 
 SA defines a Markov chain on $\{0,1\}^n$ via single bit-flip proposals (Metropolis-Hastings). The acceptance probability for a proposed flip of bit $k$ is:
 
-$$\alpha(\Delta E) = \min\left(1,\, e^{-\Delta E / T}\right), \quad \Delta E = P(\theta_k(x)) - P(x)$$
+$$\alpha(\Delta E) = \min\left(1, e^{-\Delta E / T}\right), \quad \Delta E = P(\theta_k(x)) - P(x)$$
 
-Under a logarithmic cooling schedule $T(t) = c / \log(1+t)$, SA converges to the **Gibbs-Boltzmann distribution**:
+Under a logarithmic cooling schedule $T(t) = c / \log(1+t)$, SA converges to the **Boltzmann-Gibbs distribution**:
 
 $$\pi^G(x) = \frac{e^{-P(x)/T}}{Z}, \quad Z = \sum_{x'} e^{-P(x')/T}$$
 
