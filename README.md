@@ -244,7 +244,7 @@ Benchmark experiments comparing SA and DA on the Number Partitioning Problem (30
 ---
 ![Grouped boxplot of DA vs SA](grouped_boxplot_da_sa_log.png)
 ---
-![Iteration Benchmarkts](Iterationsbenchmarks.png)
+![Iteration Benchmarkts](Iterationbenchmarks.png)
 ---
 Key observations:
 - DA is approximately **3–5× slower per step** than SA due to the overhead of evaluating all $n$ bit-flips simultaneously.
