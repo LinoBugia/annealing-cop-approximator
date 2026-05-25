@@ -59,7 +59,7 @@ $$\pi^G(x) = \frac{e^{-P(x)/T}}{Z}, \quad Z = \sum_{x'} e^{-P(x')/T}$$
 
 DA evaluates all $n$ possible single bit-flips simultaneously at each step. The transition probability is:
 
-$$P^{DA}(x, \theta_k(x)) = \sum_{\substack{S \subseteq [n] \\ k \in S}} \frac{1}{|S|} \prod_{i \in S} e^{-(\Delta\theta_i(x))^+ / T} \prod_{i \notin S} \!\!\left(1 - e^{-(\Delta\theta_i(x))^+ / T}\right)$$
+$$P^{DA}(x, \theta_k(x)) = \sum_{\substack{S \subseteq [n] : \\ k \in S}} \frac{1}{|S|} \prod_{i \in S} e^{-(\Delta\theta_i(x)) ^+ / T} \prod_{i \notin S} \left(1 - e^{-(\Delta\theta_i(x)) ^+ / T}\right)$$
 
 DA does **not** satisfy detailed balance, which means its stationary distribution $\pi^{DA}$ differs from $\pi^G$. The implementation additionally uses a **dynamic energy offset**: if no bit-flip is accepted in a given step, an energy offset $\epsilon$ is added to help escape local minima.
 
@@ -69,7 +69,7 @@ The implementation works directly on the PBF dictionary representation. After a 
 
 $$\Delta E_k = P(\theta_k(x)) - P(x) = \sum_{S \ni k} a_S \cdot (1 - 2x_k) \prod_{j \in S \setminus \{k\}} x_j$$
 
-Only monomials containing variable $k$ are evaluated, giving $O(|\text{support}(k)|)$ per flip. Crucially, this implementation uses an **incremental update method**: after accepting a flip of bit $k$, the delta-energy vector for all other bits is updated locally rather than recomputed from scratch. This yields a significant constant-factor speedup and is one of the core efficiency contributions of this codebase. In a suitable GPU orchestration, this approach is expected to be highly competitive.
+Only monomials containing variable $k$ are evaluated, giving $O(|\text{support}(k)|)$ per flip. Crucially, this implementation uses an **incremental update method**: after accepting a flip of bit $k$, the delta-energy vector for all other bits is updated locally rather than recomputed from scratch (See Masterarbeitspräsentation.pdf p.53-55). This yields a significant constant-factor speedup and is one of the core efficiency contributions of this codebase. In a suitable GPU orchestration, this approach is expected to be highly competitive.
 
 ---
 
