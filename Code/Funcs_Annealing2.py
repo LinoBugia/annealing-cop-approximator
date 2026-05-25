@@ -130,6 +130,8 @@ def evalPBF(pbf:dict[tuple:float], varAssignement:dict[int:bool]):
     else:
         out = 0
     for monomial in pbf:
+        if not monomial:
+            continue  # () bereits beruecksichtigt
         impacts = True
         for var in monomial:
             val = varAssignement[var]
@@ -382,9 +384,9 @@ def createPoly(variables: int, degree: int, density: float = 1.0, seed=42):
         monomials = list(combinations(varList, i))
         for m in monomials:
             if random.random() < density:
-                out[tuple(m)] = 1/2*random.random()*random.uniform(1,256) + random.random()
-                if random.random() < random.random():
-                    out[tuple(m)] = - out[tuple(m)]
+                out[tuple(m)] = random.random()*random.uniform(1,256) + random.random()
+                #if random.random() < random.random():
+                #    out[tuple(m)] = - out[tuple(m)]
 
 
 
@@ -717,3 +719,59 @@ def Generate_GTP(total_number, r,s, seed_rand):
     A= np.vstack((A_1,A_2))
     
     return A,np.array(b),np.array(c)
+
+def createPoly_negative(variables, degree, density=1.0, seed=42):
+    """Wie createPoly aber alle Koeffizienten negativ — Ferromagnet"""
+    random.seed(seed)
+    out = dict()
+    varList = list(range(variables))
+    for i in range(1, degree + 1):
+        for m in combinations(varList, i):
+            if random.random() < density:
+                sign = 1 if random.random() < 0.5 else -1
+                out[tuple(m)] = sign * (1/2 * random.random() * random.uniform(1,256) + random.random())
+    
+    
+    return out
+
+
+
+import numpy as np
+from collections import Counter
+import matplotlib.pyplot as plt
+
+import numpy as np
+
+def test_H1(TrajectoriesDA, TrajectoriesSA, burn_in_frac=0.3):
+    
+    def pool(trajs):
+        result = []
+        for run in trajs:
+            burn = int(len(run) * burn_in_frac)
+            result.extend(run[burn:])
+        return np.array(result)
+    
+    e_da = pool(TrajectoriesDA)
+    e_sa = pool(TrajectoriesSA)
+    
+    E_min = min(e_da.min(), e_sa.min())
+    tol   = 1e-7
+    
+    pi_da = np.mean(np.abs(e_da - E_min) < tol)
+    pi_sa = np.mean(np.abs(e_sa - E_min) < tol)
+    
+    print(f"E_min       = {E_min:.6f}")
+    print(f"π̂^DA(x*)   = {pi_da:.6f}")
+    print(f"π̂^SA(x*)   = {pi_sa:.6f}  (≈ π^G)")
+    
+    if pi_sa > 0:
+        ratio = pi_da / pi_sa
+        print(f"Ratio DA/SA = {ratio:.4f}  {'→ H1: DA Vorteil ✓' if ratio > 1 else '→ H1: SA Vorteil'}")
+    else:
+        print("Warnung: SA hat x* nie besucht — T zu klein oder Run zu kurz.")
+    
+    return pi_da, pi_sa
+
+# Nutzung:
+# test_H1(TrajectoriesDA, TrajectoriesSA, burn_in_frac=0.3)
+

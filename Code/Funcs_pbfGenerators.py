@@ -5,63 +5,94 @@ from Funcs_Annealing2 import *
 # Input parameters defining the pbf
 # Output pbf
 
-def Generate_3SAT_pbf(path,inv=False):
-    
-    df = pd.read_csv(path,skiprows=8,names=["a","b","c","0"], delim_whitespace=True)
-    
-    if inv == True:
-        f = -1
-    else:
-        f = 1
-    df = df[:-2].astype(int)
-    
-    
-    pbf = dict()
-    num_clauses = 0
-    
-    for index,row in df.iterrows():
-        # 4 cases 
-        a,b,c,d=row
-        list = [a,b,c,]
-        list.sort()
-        
-        for i in range(len(list)):
-            if list[i] > 0:
-                list[i]=list[i]-1
-            else:
-                list[i]=list[i]+1
-                
-                
-                
-        if a>= 0 and b>= 0 and c>= 0:
-        # + + +
-            pbf = Add_entry_pbf(pbf,(),+1*f)
-            pbf = Add_entry_pbf(pbf,(list[0],),-1*f)
-            pbf = Add_entry_pbf(pbf,(list[1],),-1*f)
-            pbf = Add_entry_pbf(pbf,(list[2],),-1*f)
-            pbf = Add_entry_pbf(pbf,tuple(sorted((list[0],list[1]))),+1*f)
-            pbf = Add_entry_pbf(pbf,tuple(sorted((list[0],list[2]))),+1*f)
-            pbf = Add_entry_pbf(pbf,tuple(sorted((list[1],list[2]))),+1*f)
-            pbf = Add_entry_pbf(pbf,tuple(sorted((list[0],list[1],list[2]))),-1*f)
-        # - - -
-        elif a< 0 and b< 0 and c< 0:
-            pbf = Add_entry_pbf(pbf,tuple(sorted((-list[0],-list[1],-list[2]))),+1*f)
-        # - + +       
-        elif list[1]>0:
-            list[0]=-list[0]
-            pbf = Add_entry_pbf(pbf,(list[0],),+1*f)     
-            pbf = Add_entry_pbf(pbf,tuple(sorted((list[0],list[1]))),-1*f)     
-            pbf = Add_entry_pbf(pbf,tuple(sorted((list[0],list[2]))),-1*f)  
-            pbf = Add_entry_pbf(pbf,tuple(sorted((list[0],list[1],list[2]))),+1*f)     
-        # - - +     
-        else: 
-            list[0]=-list[0]
-            list[1]=-list[1]
-            pbf = Add_entry_pbf(pbf,tuple(sorted((list[0],list[1]))),+1*f)     
-            pbf = Add_entry_pbf(pbf,tuple(sorted((list[0],list[1],list[2]))),-1*f)     
 
-        num_clauses+=1 
-    return pbf,df,num_clauses
+def Generate_3SAT_pbf(path, inv=False):
+    """
+    Liest eine DIMACS 3-SAT Instanz und kodiert sie als PBF.
+    Energie = Anzahl verletzter Klauseln (Minimum = 0 bei erfuellbarer Instanz).
+    inv=True: negiert alle Koeffizienten.
+    """
+    f = -1 if inv else 1
+
+    # --- DIMACS parsen + Metadaten sammeln ---
+    clauses = []
+    meta = {"horn": None, "forced": None, "mixed_sat": None, "clause_length": None}
+    num_vars = None
+    num_clauses_header = None
+
+    with open(path) as file:
+        for line in file:
+            line_stripped = line.strip()
+
+            # Kommentarzeilen: Metadaten extrahieren
+            if line_stripped.startswith('c'):
+                low = line_stripped.lower()
+                if 'horn?' in low:
+                    meta["horn"] = low.split('horn?')[1].strip()
+                elif 'forced?' in low:
+                    meta["forced"] = low.split('forced?')[1].strip()
+                elif 'mixed sat?' in low:
+                    meta["mixed_sat"] = low.split('mixed sat?')[1].strip()
+                elif 'clause length' in low:
+                    meta["clause_length"] = low.split('=')[1].strip()
+                continue
+
+            # Problem-Zeile
+            if line_stripped.startswith('p'):
+                parts = line_stripped.split()
+                num_vars = int(parts[2])
+                num_clauses_header = int(parts[3])
+                continue
+
+            if line_stripped in ('%', '0', ''):
+                continue
+
+            lits = list(map(int, line_stripped.split()))
+            if lits[-1] == 0:
+                lits = lits[:-1]
+            if lits:
+                clauses.append(lits)
+
+    # --- Header ausgeben ---
+    ratio = len(clauses) / num_vars if num_vars else float('nan')
+    forced_str = meta["forced"] if meta["forced"] else "unknown"
+    sat_status = "SAT guaranteed" if forced_str == "yes" else \
+                 "UNSAT likely"   if ratio > 4.267 else \
+                 "SAT likely"
+
+    print("=" * 50)
+    print(f"  3-SAT PBF Generator")
+    print("=" * 50)
+    print(f"  File         : {path}")
+    print(f"  Variables    : {num_vars}")
+    print(f"  Clauses      : {len(clauses)}  (header: {num_clauses_header})")
+    print(f"  Ratio m/n    : {ratio:.4f}  (phase transition: 4.267)")
+    print(f"  Forced SAT   : {forced_str}")
+    print(f"  Horn         : {meta['horn'] or 'unknown'}")
+    print(f"  Mixed SAT    : {meta['mixed_sat'] or 'unknown'}")
+    print(f"  Inverted PBF : {inv}")
+    print(f"  Status est.  : {sat_status}")
+    print("=" * 50)
+
+    # --- PBF aufbauen ---
+    from itertools import combinations
+    pbf = {}
+
+    for lits in clauses:
+        pos_idxs = [v - 1 for v in lits if v > 0]
+        neg_idxs = [(-v) - 1 for v in lits if v < 0]
+
+        for r in range(len(pos_idxs) + 1):
+            for subset in combinations(pos_idxs, r):
+                sign = (-1) ** r
+                key = tuple(sorted(neg_idxs + list(subset)))
+                pbf = Add_entry_pbf(pbf, key, f * sign)
+
+    print(f"  PBF terms    : {len(pbf)}")
+    print(f"  Constant ()  : {pbf.get((), 0)}")
+    print("=" * 50 + "\n")
+
+    return pbf, clauses, len(clauses),num_vars
 
     
 def Generate_2D_Ising_pbf(dim:str,N:int,J:float,h:float):
@@ -370,7 +401,17 @@ def convert_IBMQ_QUBO_to_pbf(IBMQ_QUBO):
     return pbf, num_vars
 
 #Gen Functions
-    
+def createPoly_negative(variables, degree, density=1.0, seed=42):
+    """Wie createPoly aber alle Koeffizienten negativ — Ferromagnet"""
+    random.seed(seed)
+    out = dict()
+    varList = list(range(variables))
+    for i in range(1, degree + 1):
+        for m in combinations(varList, i):
+            if random.random() < density:
+                out[tuple(m)] = -(random.random()*random.uniform(1,256) + random.random())
+                # KEIN Vorzeichenwechsel mehr
+    return out    
 
 def GenerateNumberPartitioningpbf(numbers: list[float])-> dict[tuple:float]:
 

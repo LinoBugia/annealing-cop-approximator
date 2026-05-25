@@ -13,7 +13,8 @@ import plotly.graph_objects as go
 from Funcs_lkh import *
 from Funcs_pbfGenerators import GenerateGraphBinaryClustering_pbf
 
-
+import plotly.io as pio
+pio.renderers.default = "browser"
 def VisualizeRuns(pbf,type_alg, num_MC,offset_increase_rate,Trajectories,Mins,ExecTimes,T,Qs,Min_varAssignements,initial_varAssignment,trans_dict=dict(),coords=[]):
     if type_alg == "digitalAnnealing_TSP":
         rows =6
@@ -267,8 +268,8 @@ def pbf_min_solver(pbf : dict[tuple:float],pbf_var_dict: dict[int:tuple] ,
                 Min_varAssignements.append(Output[1])
                 #print("Min")
                 #Print_VarAssigmentCommandline(Output[1])
-        
-            print(str(i) +"-th MC trial: "+ str(endtime) + " sec, Average time rest execution " + str(np.mean(ExecTimes)*(num_MC-i-1)) + "sec, Min " +str(Mins[i]))
+            if 1:
+                print(str(i) +"-th MC trial: "+ str(endtime) + " sec, Average time rest execution " + str(np.mean(ExecTimes)*(num_MC-i-1)) + "sec, Min " +str(Mins[i]))
     if save_csv:
         eval_directory = str(os.getcwd()) + "/Runs"
         if os.path.exists(eval_directory) == 0:
