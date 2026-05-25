@@ -78,11 +78,10 @@ Only monomials containing variable $k$ are evaluated, giving $O(|\text{support}(
 | Algorithm | Description |
 |-----------|-------------|
 | **Simulated Annealing (SA)** | Metropolis-Hastings with single bit-flip proposals. Converges to $\pi^G$. |
-| **Digital Annealing (DA)** | Parallel evaluation of all bit-flips; energy offset escape mechanism. |
+| **Digital Annealing (DA)** | Main benchmark algorithm of DA with the update method (see Masterarbeitspräsentation.pdf); energy offset escape mechanism. |
 | **DA (parallel)** | DA with Python `multiprocessing` for parallel flip evaluation. |
 | **SCA Annealing** | Stochastic Cellular Automata variant: simultaneous update of all bits per step. |
-| **Tensor Annealing** | TensorFlow-based SA with GPU acceleration; QUBO delta-energy via $\Delta E_i = -2x_i(Q_i \cdot x)$. |
-| **Lin-Kernighan (LKH)** | High-performance classical TSP heuristic via `lk_heuristic` (benchmark baseline). |
+| **Tensor Annealing** | TensorFlow-based DA with GPU acceleration; QUBO delta-energy via $\Delta E_i = -2x_i(Q_i \cdot x)$. |
 
 ### Cooling Schedules
 
@@ -107,7 +106,7 @@ Only monomials containing variable $k$ are evaluated, giving $O(|\text{support}(
 | **Binary / Integer Programming** | General BIP/IP encoding as PBF | `Skript_Solve_Integer_Programm.py` |
 | **Random PBF** | Randomly generated PBF landscapes for benchmarking | `Skript_Solve_Random_Generated_pbf.py` |
 | **Database Join Ordering** | QUBO via cardinality/selectivity constraints; D-Wave, IBM, Fujitsu compatible | `Skript_Join_Ordering.py` |
-| **Generalized Transportation** | QUBO formulation | `Funcs_Annealing2.py` |
+| **Generalized Transportation** | QUBO formulation | `Skript_Solve_GTP.py` |
 
 ---
 
@@ -141,6 +140,7 @@ AnnealingCopApproximator/
 │   │   ├── Skript_Solve_Integer_Programm.py
 │   │   ├── Skript_Solve_Random_Generated_pbf.py
 │   │   ├── Skript_IsingModel_Simulator.py
+│   │   ├── Skript_Solve_GTP.py
 │   │   └── Skript_Join_Ordering.py
 │   │
 │   └── Visualization & export
@@ -241,11 +241,11 @@ python Boxplot.py
 ## Results
 
 Benchmark experiments comparing SA and DA on the Number Partitioning Problem (300–1700 variables):
----
+
 ![Grouped boxplot of DA vs SA](grouped_boxplot_da_sa_log.png)
----
+
 ![Iteration Benchmarkts](Iterationbenchmarks.png)
----
+
 Key observations:
 - DA is approximately **3–5× slower per step** than SA due to the overhead of evaluating all $n$ bit-flips simultaneously.
 - Despite the per-step overhead, DA shows competitive or superior solution quality on the tested instances.
@@ -297,7 +297,7 @@ In short: this repository demonstrates that the DA algorithm can be implemented 
 ### Benchmark Data
 
 - SATLIB Benchmark Suite (3-SAT instances): https://www.cs.ubc.ca/~hoos/SATLIB/benchm.html
-- Trummer, I. et al. (2024). *Join Ordering via Quantum-Inspired Optimization.* VLDB 2024.
+- Dr. Manuel Schönberger, *Join Ordering via Quantum-Inspired Optimization.* VLDB 2024. https://github.com/lfd/vldb24
 
 ### Libraries & Tools Used
 
