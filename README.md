@@ -1,4 +1,4 @@
-# AnnealingCopApproximator
+# annealing-cop-approximator
 
 > Implementations of Simulated Annealing, Digital Annealing, and related algorithms for solving combinatorial optimization problems encoded as Pseudo-Boolean Functions.
 
@@ -257,7 +257,7 @@ Key observations:
 
 This repository is also a testbed for ongoing, unpublished theoretical and applied research.
 
-**Stationary distribution analysis.** DA does not satisfy detailed balance, so its stationary distribution $\pi^{DA}$ is not the Gibbs distribution. Work is underway to analytically characterize $\pi^{DA}$ for structured PBF landscapes and to derive practical statements about the convergence behaviour of DA relative to SA. The goal is to understand when and why DA concentrates probability mass differently than SA at equilibrium — and what that implies for its performance as an optimizer.
+**Stationary distribution analysis.** DA does not satisfy detailed balance and its stationary distribution $\pi^{DA}$ is not the Gibbs distribution. Work is underway to analytically characterize $\pi^{DA}$ for structured PBF landscapes and to derive practical statements about the convergence behaviour of DA relative to SA. The goal is to understand when and why DA concentrates probability mass differently than SA at equilibrium — and what that implies for its performance as an optimizer.
 
 **Applications in AI.** A separate line of ongoing work investigates potential applications of Digital Annealing in the context of AI systems. Experiments are currently in progress and results are not yet published.
 
