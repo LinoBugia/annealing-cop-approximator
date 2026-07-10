@@ -348,7 +348,7 @@ def GraphPartitioning(coords,parts,num_MC_GP=1,diff_border=1,steps = 200):
             cooling_param = ["logarithmic", c,0]
             pbf_var_dict = createPolyDict(pbf,len(Group))
             print("size pbf: " +str(len(pbf.keys())))
-            print("feature generation time:" + str(time.time() - start_time_gen))
+            print("featue generation time:" + str(time.time() - start_time_gen))
             #if t== 0:visualize_inst=True
             Min_VarAss,Min,Trajectories,result_List= pbf_min_solver(pbf,pbf_var_dict,"digitalAnnealing",steps,num_MC_GP,cooling_param,seed_rand_GP,seed_gen,
                                             visual_inst=visualize_inst,offset_increase_rate=Offset_increase,save_csv=False,save_addinfo=True,random_start=True)      
