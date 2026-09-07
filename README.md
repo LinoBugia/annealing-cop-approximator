@@ -26,7 +26,7 @@ This repository contains the practical implementation component of the Master's 
 
 All optimization problems in this project are encoded as **Pseudo-Boolean Functions (PBFs)**:
 
-$$P : \mathbb{F}^n \to \mathbb{R}, \quad P(x) = \sum_{S \subseteq \{1,\ldots,n\}} a_S \prod_{k \in S} x_k$$
+$$P : \mathbb{F}_2^n \to \mathbb{R}, \quad P(x) = \sum_{S \subseteq \{1,\ldots,n\}} a_S \prod_{k \in S} x_k$$
 
 PBFs are represented in Python as dictionaries mapping monomial tuples to real coefficients:
 
