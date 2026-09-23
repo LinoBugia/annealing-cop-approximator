@@ -38,7 +38,7 @@ where $d$ is the degree of the PBF. This general representation covers both **QU
 
 ### The framework: modification maps
 
-Every algorithm here is an iterative method on a finite state space $M$ with objective $f : M \to \mathbb{R}$. What it moves along is a **modification map** — the notion the thesis is built on:
+Every algorithm here is an iterative method on a finite state space $M$ with objective $f : M \to \mathbb{R}$. What it moves along is a **modification map**. This formulation is the author's own, introduced in the thesis so that bit-flip moves on PBFs and tour-based moves on the TSP can be treated in one framework:
 
 > **Definition.** Let $(M, f)$ be an instance of a combinatorial optimization problem. A map
 > $$\varphi : M \times K \to M, \qquad (x, k) \mapsto \varphi_k(x)$$
@@ -87,6 +87,8 @@ DA evaluates **all** $\Delta f_k$, $k \in K$, in one step, applies the Metropoli
 $$P^{DA}(x, \theta_k(x)) = \sum_{\substack{S \subseteq K : \\ k \in S}} \frac{1}{|S|} \prod_{i \in S} e^{-\Delta E_i(x)^+ / T} \prod_{i \notin S} \left(1 - e^{-\Delta E_i(x)^+ / T}\right), \qquad \Delta E_i^+ = \max(0, \Delta E_i),$$
 
 and $P^{DA}(x, x) = \prod_i \big(1 - e^{-\Delta E_i(x)^+ / T}\big)$ when nothing is accepted. DA does **not** satisfy detailed balance, so its stationary distribution $\pi^{DA}$ differs from $\pi^G$ — by how much, and in which direction, is the subject of the [findings section](#preliminary-findings-about-da). The implementation additionally uses a **dynamic energy offset** (escape mechanism): a value $E_{\text{off}}$, initially 0, is *subtracted* from every $\Delta E_i$ before the acceptance test. Whenever no flip is accepted in a step, $E_{\text{off}}$ grows by `offset_increase_rate`; as soon as a flip is accepted it is reset to 0. This turns the exponentially long waiting time at a local minimum into a linear one.
+
+**Convergence.** Without the escape mechanism the DA chain converges to the global minima under a logarithmic cooling schedule — the analogue of Hajek's theorem for SA; this was proved by Fukushima-Kimura et al. (2023) for the parallel-trial chain. With the escape mechanism the process is still a Markov chain, on the extended and still finite state space of pairs (state, number of consecutive idle steps), but Hajek's guarantee presumably does not survive: at a fixed offset rate the chain concentrates, as $T \to 0$, on $\arg\min\,[E + g_{\min}]$ rather than on $\arg\min E$ (see [findings, point 4](#4-what-this-suggests-for-choosing-annealing-parameters)). What replaces the guarantee is the subject of ongoing research.
 
 ### Incremental delta-energy update
 
@@ -412,7 +414,7 @@ For the large-scale service the comparison is therefore algorithmic, not archite
 ### Papers
 
 - Aramon, M., Rosenberg, G., Valiante, E., Miyazawa, T., Tamura, H., Katzgraber, H.G. (2019). *Physics-Inspired Optimization for Quadratic Unconstrained Problems Using a Digital Annealer.* Frontiers in Physics 7:48. [DOI: 10.3389/fphy.2019.00048](https://www.frontiersin.org/journals/physics/articles/10.3389/fphy.2019.00048) — the Digital Annealer algorithm, parallel trial and escape mechanism.
-- Fukushima-Kimura, B.H., Kawamoto, N., Noda, E., Saburi, K., Tasaki, H. (2023). *Mathematical aspects of the digital annealer's simulated annealing algorithm.* Journal of Statistical Physics. [DOI: 10.1007/s10955-023-03179-3](https://link.springer.com/article/10.1007/s10955-023-03179-3) — [arXiv:2303.08392](https://arxiv.org/abs/2303.08392) — closed-form DA transition probabilities (formula (3.6) used in the stationary distribution toolkit).
+- Fukushima-Kimura, B.H., Kawamoto, N., Noda, E., Saburi, K., Tasaki, H. (2023). *Mathematical aspects of the digital annealer's simulated annealing algorithm.* Journal of Statistical Physics. [DOI: 10.1007/s10955-023-03179-3](https://link.springer.com/article/10.1007/s10955-023-03179-3) — [arXiv:2303.08392](https://arxiv.org/abs/2303.08392) — closed-form DA transition probabilities (formula (3.6) used in the stationary distribution toolkit) and the proof that the parallel-trial DA chain without escape mechanism converges under logarithmic cooling (Hajek-type result).
 - Kirkpatrick, S., Gelatt, C.D., Vecchi, M.P. (1983). *Optimization by Simulated Annealing.* Science.
 - Hajek, B. (1988). *Cooling Schedules for Optimal Annealing.* Mathematics of Operations Research.
 - Aarts, E., Korst, J. (1989). *Simulated Annealing and Boltzmann Machines.* Wiley — finite-time schedule behind `"auto_sa"`.
