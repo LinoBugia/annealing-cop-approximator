@@ -74,8 +74,8 @@ computes** ($t$ = step index, starting at 1):
 | `cooling_param` | Formula | Notes |
 |---|---|---|
 | `["constant", C]` | $T_t = C$ | fixed temperature (the regime the stationary-distribution toolkit analyses) |
-| `["linear", T_start, T_end]` | $T_t = T_{\text{start}} + t\,(T_{\text{end}}-T_{\text{start}})/\text{steps}$ | |
-| `["logarithmic", c, 0]` | $T_t = c \,/\, \log\!\big(1 + t^{2.22}\big)$ | Hajek-type schedule with a fixed exponent $d = 2.22$; the third entry is not used by the schedule but is written to the CSV as `T_end`, so keep it when `save_csv=True` |
+| `["linear", T_start, T_end]` | $T_t = T_{\text{start}} + t (T_{\text{end}}-T_{\text{start}})/\text{steps}$ | |
+| `["logarithmic", c, 0]` | $T_t = c / \log\big(1 + t^{2.22}\big)$ | Hajek-type schedule with a fixed exponent $d = 2.22$; the third entry is not used by the schedule but is written to the CSV as `T_end`, so keep it when `save_csv=True` |
 | `["logarithmic_step", c, k]` | as above, each value repeated $k$ times | plateaus of length $k$ |
 | `["exponential", c]` | $T_t = e^{t/c} - 1$ | **rising** in $t$ — a heating schedule, not a cooling one |
 | `["rising", T_start]` | $T_t = T_{\text{start}} \cdot t$ | used internally for the SCA pinning schedule `Qs` |

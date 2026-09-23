@@ -19,7 +19,9 @@ moves on PBFs and tour-based moves on the TSP can be treated in one framework:
 
 > **Definition.** Let $(M, f)$ be an instance of a combinatorial optimization
 > problem. A map
-> $$\varphi : M \times K \to M, \qquad (x, k) \mapsto \varphi_k(x)$$
+> ```math
+> \varphi : M \times K \to M, \qquad (x, k) \mapsto \varphi_k(x)
+> ```
 > with a finite **control set** $K$ is a *modification map* if every state can
 > be reached from every other by a finite sequence of modifications: for all
 > $x \ne y$ in $M$ there are $k_1, \dots, k_m \in K$ with
@@ -28,25 +30,31 @@ moves on PBFs and tour-based moves on the TSP can be treated in one framework:
 The quantity that drives the search is the objective difference of one
 modification,
 
-$$\Delta f_k(x) := f(\varphi_k(x)) - f(x),$$
+```math
+\Delta f_k(x) := f(\varphi_k(x)) - f(x),
+```
 
 and a modification is only useful if $\Delta f_k$ can be evaluated cheaply. Two
 properties of the chains below follow from the definition alone: they are
 **irreducible** (any two states are joined by a sequence of modifications, each
-of positive probability at $T > 0$), which makes the stationary distribution
+of positive probability at $T \gt 0$), which makes the stationary distribution
 unique, and **aperiodic** (a state whose modifications are all rejected returns
 to itself in one step), which makes the chain converge to it.
 
 ## The modifications used here
 
-**Bit flip on $\mathbb{F}_2^n$.** $K = \{1, \dots, n\}$ and
+**Bit flip on $\mathbb{F}_2^n$.** $K = \lbrace 1, \dots, n\rbrace$ and
 
-$$\theta_k(x) = (x_1, \dots, x_{k-1},\ x_k \oplus 1,\ x_{k+1}, \dots, x_n)^T, \qquad \oplus = \text{addition in } \mathbb{F}_2 .$$
+```math
+\theta_k(x) = (x_1, \dots, x_{k-1},\ x_k \oplus 1,\ x_{k+1}, \dots, x_n)^T, \qquad \oplus = \text{addition in } \mathbb{F}_2 .
+```
 
 Any state is reached in at most $n$ flips, so $\theta$ is a modification map.
 For a PBF the difference only involves the monomials that contain $k$:
 
-$$\Delta E_k(x) := P(\theta_k(x)) - P(x) = (-1)^{x_k} \sum_{S \ni k} a_S \prod_{i \in S \setminus \{k\}} x_i ,$$
+```math
+\Delta E_k(x) := P(\theta_k(x)) - P(x) = (-1)^{x_k} \sum_{S \ni k} a_S \prod_{i \in S \setminus \{k\}} x_i ,
+```
 
 which costs $O(\lvert\text{support}(k)\rvert)$ per flip (`Eval_Delta_Energy` in
 `Funcs_Annealing2.py`). This is why the implementation works on the PBF
@@ -57,7 +65,9 @@ of city pairs $(a, b)$ with $a \ne b$, and $\varphi_{(a,b)}(t)$ exchanges the
 positions of the two cities. For non-adjacent $a, b$ only eight distances
 change,
 
-$$\Delta f_{(a,b)}(t) = -d_{a-1,a} - d_{a,a+1} - d_{b-1,b} - d_{b,b+1} + d_{a,b-1} + d_{a,b+1} + d_{a-1,b} + d_{a+1,b}$$
+```math
+\Delta f_{(a,b)}(t) = -d_{a-1,a} - d_{a,a+1} - d_{b-1,b} - d_{b,b+1} + d_{a,b-1} + d_{a,b+1} + d_{a-1,b} + d_{a+1,b}
+```
 
 (indices are tour neighbours, cyclically), and $|K| = \binom{n}{2}$. In the
 permutation-matrix QUBO encoding a city swap changes exactly four bits; that is
@@ -77,7 +87,9 @@ and the origin of the per-step overhead measured in
 SA is the Metropolis chain over a modification map: draw $k \in K$ uniformly at
 random and accept the move with
 
-$$\alpha(\Delta f_k) = \min\left(1,\ e^{-\Delta f_k(x) / T}\right).$$
+```math
+\alpha(\Delta f_k) = \min\left(1,\ e^{-\Delta f_k(x) / T}\right).
+```
 
 Throughout this repository $M = \mathbb{F}_2^n$, $f = P$ and $\varphi = \theta$,
 so $\Delta f_k = \Delta E_k$. At constant $T$ the chain is reversible and its
@@ -85,7 +97,9 @@ stationary distribution is the **Boltzmann–Gibbs distribution**; under a
 sufficiently slow logarithmic cooling schedule it concentrates on the global
 minima (Hajek 1988):
 
-$$\pi^G(x) = \frac{e^{-P(x)/T}}{Z}, \quad Z = \sum_{x'} e^{-P(x')/T}$$
+```math
+\pi^G(x) = \frac{e^{-P(x)/T}}{Z}, \quad Z = \sum_{x'} e^{-P(x')/T}
+```
 
 ## Digital Annealing (DA)
 
@@ -94,7 +108,9 @@ Metropolis test to each of them independently, and then picks one of the
 accepted modifications uniformly at random. For bit flips the transition
 probability is
 
-$$P^{DA}(x, \theta_k(x)) = \sum_{\substack{S \subseteq K : \\ k \in S}} \frac{1}{|S|} \prod_{i \in S} e^{-\Delta E_i(x)^+ / T} \prod_{i \notin S} \left(1 - e^{-\Delta E_i(x)^+ / T}\right), \qquad \Delta E_i^+ = \max(0, \Delta E_i),$$
+```math
+P^{DA}(x, \theta_k(x)) = \sum_{\substack{S \subseteq K : \\ k \in S}} \frac{1}{|S|} \prod_{i \in S} e^{-\Delta E_i(x)^+ / T} \prod_{i \notin S} \left(1 - e^{-\Delta E_i(x)^+ / T}\right), \qquad \Delta E_i^+ = \max(0, \Delta E_i),
+```
 
 and $P^{DA}(x, x) = \prod_i \big(1 - e^{-\Delta E_i(x)^+ / T}\big)$ when nothing
 is accepted. DA does **not** satisfy detailed balance, so its stationary

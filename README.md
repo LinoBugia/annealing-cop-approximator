@@ -67,10 +67,12 @@ algorithms and all cooling schedules are in
 
 Every problem is encoded as a **pseudo-Boolean function (PBF)**:
 
-$$P : \mathbb{F}_2^n \to \mathbb{R}, \quad P(x) = \sum_{\substack{S \subseteq \{1,\ldots,n\} \\ |S| \le d}} a_S \prod_{k \in S} x_k$$
+```math
+P : \mathbb{F}_2^n \to \mathbb{R}, \quad P(x) = \sum_{\substack{S \subseteq \{1,\ldots,n\} \\ |S| \le d}} a_S \prod_{k \in S} x_k
+```
 
 where $d$ is the degree of the PBF. This general representation covers both
-**QUBO** ($d \le 2$) and **PUBO** ($d > 2$, e.g. 3-SAT). The goal in all cases
+**QUBO** ($d \le 2$) and **PUBO** ($d \gt 2$, e.g. 3-SAT). The goal in all cases
 is to find the binary assignment $x^\ast \in \mathbb{F}_2^n$ that minimizes $P(x)$.
 In code, a PBF is a Python `dict` from monomial tuples to coefficients — see
 [configuration.md](docs/configuration.md#input-the-pbf-dictionary).
