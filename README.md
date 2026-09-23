@@ -28,39 +28,69 @@ This repository contains the practical implementation component of the Master's 
 
 All optimization problems in this project are encoded as **Pseudo-Boolean Functions (PBFs)**:
 
-$$P : \mathbb{F}_2^n \to \mathbb{R}, \quad P(x) = \sum_{S \subseteq \{1,\ldots,n\}} a_S \prod_{k \in S} x_k$$
+$$P : \mathbb{F}_2^n \to \mathbb{R}, \quad P(x) = \sum_{\substack{S \subseteq \{1,\ldots,n\} \\ |S| \le d}} a_S \prod_{k \in S} x_k$$
 
-This general representation covers both **QUBO** (degree ≤ 2) and **PUBO** (higher degree, e.g. 3-SAT). The goal in all cases is to find the binary assignment $x^* \in \mathbb{F}_2^n$ that minimizes $P(x)$. In code, a PBF is a Python `dict` from monomial tuples to coefficients — see [Core API](#core-api).
+where $d$ is the degree of the PBF. This general representation covers both **QUBO** ($d \le 2$) and **PUBO** ($d > 2$, e.g. 3-SAT). The goal in all cases is to find the binary assignment $x^* \in \mathbb{F}_2^n$ that minimizes $P(x)$. In code, a PBF is a Python `dict` from monomial tuples to coefficients — see [Core API](#core-api).
 
 ---
 
 ## Mathematical Framework
 
+### The framework: modification maps
+
+Every algorithm here is an iterative method on a finite state space $M$ with objective $f : M \to \mathbb{R}$. What it moves along is a **modification map** — the notion the thesis is built on:
+
+> **Definition.** Let $(M, f)$ be an instance of a combinatorial optimization problem. A map
+> $$\varphi : M \times K \to M, \qquad (x, k) \mapsto \varphi_k(x)$$
+> with a finite **control set** $K$ is a *modification map* if every state can be reached from every other by a finite sequence of modifications: for all $x \ne y$ in $M$ there are $k_1, \dots, k_m \in K$ with $x = \varphi_{k_1}(\cdots\varphi_{k_m}(y))$.
+
+The quantity that drives the search is the objective difference of one modification,
+
+$$\Delta f_k(x) := f(\varphi_k(x)) - f(x),$$
+
+and a modification is only useful if $\Delta f_k$ can be evaluated cheaply. Two properties of the chains below follow from the definition alone: they are **irreducible** (any two states are joined by a sequence of modifications, each of positive probability at $T > 0$), which makes the stationary distribution unique, and **aperiodic** (a state whose modifications are all rejected returns to itself in one step), which makes the chain converge to it.
+
+### The modifications used here
+
+**Bit flip on $\mathbb{F}_2^n$.** $K = \{1, \dots, n\}$ and
+
+$$\theta_k(x) = (x_1, \dots, x_{k-1},\ x_k \oplus 1,\ x_{k+1}, \dots, x_n)^T, \qquad \oplus = \text{addition in } \mathbb{F}_2 .$$
+
+Any state is reached in at most $n$ flips, so $\theta$ is a modification map. For a PBF the difference only involves the monomials that contain $k$:
+
+$$\Delta E_k(x) := P(\theta_k(x)) - P(x) = (-1)^{x_k} \sum_{S \ni k} a_S \prod_{i \in S \setminus \{k\}} x_i ,$$
+
+which costs $O(\lvert\text{support}(k)\rvert)$ per flip (`Eval_Delta_Energy` in `Funcs_Annealing2.py`). This is why the implementation works on the PBF dictionary and never needs a dense matrix.
+
+**City swap on tours (TSP).** For a tour $t = (t_1, \dots, t_n)$, $K$ is the set of city pairs $(a, b)$ with $a \ne b$, and $\varphi_{(a,b)}(t)$ exchanges the positions of the two cities. For non-adjacent $a, b$ only eight distances change,
+
+$$\Delta f_{(a,b)}(t) = -d_{a-1,a} - d_{a,a+1} - d_{b-1,b} - d_{b,b+1} + d_{a,b-1} + d_{a,b+1} + d_{a-1,b} + d_{a+1,b}$$
+
+(indices are tour neighbours, cyclically), and $|K| = \binom{n}{2}$. In the permutation-matrix QUBO encoding a city swap changes exactly four bits; that is the move `digitalAnnealing_TSP` implements. The edge swap (2-opt, $\Delta f = -d_{a_1 a_2} - d_{b_1 b_2} + d_{a_1 b_2} + d_{a_2 b_1}$) is available in `Funcs_TSP.py`.
+
+**Why the control set matters for DA.** SA evaluates one $\Delta f_k$ per step, DA evaluates all $|K|$ of them: a factor $n$ for bit flips, $\binom{n}{2}$ for city swaps. DA therefore needs encodings whose control set scales well and whose differences are cheap — the reason this codebase works on PBFs with bit flips, and the origin of the per-step overhead measured in [Results](#results).
+
 ### Simulated Annealing (SA)
 
-SA defines a Markov chain on $\mathbb{F}_2^n$ via single bit-flip proposals (Metropolis-Hastings). The acceptance probability for a proposed flip of bit $k$ is:
+SA is the Metropolis chain over a modification map: draw $k \in K$ uniformly at random and accept the move with
 
-$$\alpha(\Delta E) = \min\left(1, e^{-\Delta E / T}\right), \quad \Delta E = P(\theta_k(x)) - P(x)$$
+$$\alpha(\Delta f_k) = \min\left(1,\ e^{-\Delta f_k(x) / T}\right).$$
 
-At constant $T$ the chain is reversible and its stationary distribution is the **Boltzmann–Gibbs distribution**; under a sufficiently slow logarithmic cooling schedule it concentrates on the global minima (Hajek 1988):
+Throughout this repository $M = \mathbb{F}_2^n$, $f = P$ and $\varphi = \theta$, so $\Delta f_k = \Delta E_k$. At constant $T$ the chain is reversible and its stationary distribution is the **Boltzmann–Gibbs distribution**; under a sufficiently slow logarithmic cooling schedule it concentrates on the global minima (Hajek 1988):
 
 $$\pi^G(x) = \frac{e^{-P(x)/T}}{Z}, \quad Z = \sum_{x'} e^{-P(x')/T}$$
 
 ### Digital Annealing (DA)
 
-DA evaluates all $n$ possible single bit-flips simultaneously at each step, accepts each one independently with the Metropolis probability, and then picks one of the accepted flips uniformly at random. The transition probability is:
+DA evaluates **all** $\Delta f_k$, $k \in K$, in one step, applies the Metropolis test to each of them independently, and then picks one of the accepted modifications uniformly at random. For bit flips the transition probability is
 
-$$P^{DA}(x, \theta_k(x)) = \sum_{\substack{S \subseteq [n] : \\ k \in S}} \frac{1}{|S|} \prod_{i \in S} e^{-\Delta E_i(x)^+ / T} \prod_{i \notin S} \left(1 - e^{-\Delta E_i(x)^+ / T}\right), \qquad \Delta E_i^+ = \max(0, \Delta E_i)$$
+$$P^{DA}(x, \theta_k(x)) = \sum_{\substack{S \subseteq K : \\ k \in S}} \frac{1}{|S|} \prod_{i \in S} e^{-\Delta E_i(x)^+ / T} \prod_{i \notin S} \left(1 - e^{-\Delta E_i(x)^+ / T}\right), \qquad \Delta E_i^+ = \max(0, \Delta E_i),$$
 
-DA does **not** satisfy detailed balance, so its stationary distribution $\pi^{DA}$ differs from $\pi^G$ — by how much, and in which direction, is the subject of the [findings section](#preliminary-findings-about-da). The implementation additionally uses a **dynamic energy offset** (escape mechanism): a value $E_{\text{off}}$, initially 0, is *subtracted* from every $\Delta E_i$ before the acceptance test. Whenever no flip is accepted in a step, $E_{\text{off}}$ grows by `offset_increase_rate`; as soon as a flip is accepted it is reset to 0. This turns the exponentially long waiting time at a local minimum into a linear one.
+and $P^{DA}(x, x) = \prod_i \big(1 - e^{-\Delta E_i(x)^+ / T}\big)$ when nothing is accepted. DA does **not** satisfy detailed balance, so its stationary distribution $\pi^{DA}$ differs from $\pi^G$ — by how much, and in which direction, is the subject of the [findings section](#preliminary-findings-about-da). The implementation additionally uses a **dynamic energy offset** (escape mechanism): a value $E_{\text{off}}$, initially 0, is *subtracted* from every $\Delta E_i$ before the acceptance test. Whenever no flip is accepted in a step, $E_{\text{off}}$ grows by `offset_increase_rate`; as soon as a flip is accepted it is reset to 0. This turns the exponentially long waiting time at a local minimum into a linear one.
 
-### Efficient Delta-Energy Computation
+### Incremental delta-energy update
 
-The implementation works directly on the PBF dictionary. After a bit-flip at position $k$, the change in energy is:
-
-$$\Delta E_k = P(\theta_k(x)) - P(x) = \sum_{S \ni k} a_S \cdot (1 - 2x_k) \prod_{j \in S \setminus \{k\}} x_j$$
-
-Only monomials containing variable $k$ are evaluated, giving $O(|\text{support}(k)|)$ per flip. Crucially, the DA loop uses an **incremental update**: after accepting a flip of bit $k$, the delta-energy vector of all other bits is updated locally rather than recomputed from scratch (see `Masterarbeitspräsentation.pdf`, p. 53–55). This is one of the core efficiency contributions of this codebase.
+After a flip of bit $k$ is accepted, the vector $(\Delta E_i)_{i \in K}$ is not recomputed: only the entries $i$ that share a monomial with $k$ change, and each changes by a local correction (see `Masterarbeitspräsentation.pdf`, p. 53–55). This incremental update is one of the core efficiency contributions of this codebase; it keeps DA's per-step cost at the measured 3–5× of SA instead of a factor $n$.
 
 ---
 
@@ -334,7 +364,7 @@ Benchmark experiments comparing SA and DA on the Number Partitioning Problem (30
 ![Iteration Benchmarks](Iterationbenchmarks.png)
 
 Key observations:
-- DA is approximately **3–5× slower per step** than SA in this Python implementation, because every step evaluates all $n$ bit-flips.
+- DA is approximately **3–5× slower per step** than SA in this Python implementation: all $n$ acceptance tests per step plus the incremental update of the delta vector, against a single evaluation for SA.
 - Despite the per-step overhead, DA shows competitive or superior solution quality on the tested instances.
 - The findings below explain part of this: at the temperatures where annealing does its work, DA's Markov chain relaxes up to $n$ times faster than SA's.
 
