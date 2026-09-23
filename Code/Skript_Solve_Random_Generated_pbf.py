@@ -15,7 +15,7 @@ if __name__ == "__main__":
     print("num_MC ="+str(num_MC ))
     cooling_param = ["logarithmic", int(variables/2),0]
     cooling_param = ["constant", 8,0.001]
-    #cooling_param = ["auto", 5000,250,4.64254]
+    #cooling_param = ["auto_sa", 5000,250,4.64254]
     #cooling_param = ["exponential", 1000000,1000000]
     print("starting feature generation")
     start_time_gen =time.time() 

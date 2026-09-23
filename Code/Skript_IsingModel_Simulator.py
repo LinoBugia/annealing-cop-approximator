@@ -67,7 +67,7 @@ if __name__ == "__main__":
     
         #validate  
         list=[] 
-        outputfolder = "/Users/lino/Documents/python/AnnealingCopApproximator/Code/IsingRunDA50"
+        outputfolder = "/Users/lino/Documents/python/annealing-cop-approximator/Code/IsingRunDA50"
         for k in range(len(result_List_1da)):
             
             if k>29999:

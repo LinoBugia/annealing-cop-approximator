@@ -6,7 +6,7 @@ from matplotlib.patches import Patch
 # ------------------------------
 # CSV einlesen
 # ------------------------------
-df = pd.read_csv("/Users/lino/Documents/python/AnnealingCopApproximator/Code/Data.csv")
+df = pd.read_csv("/Users/lino/Documents/python/annealing-cop-approximator/Code/Data.csv")
 
 # Spalten mit den Werten (0..20)
 value_columns = df.columns[2:]

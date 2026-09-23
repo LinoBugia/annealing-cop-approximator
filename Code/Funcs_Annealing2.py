@@ -535,7 +535,10 @@ def Generate_Cooling_Schedule(cooling_param:list,steps:int)->list[float]:
             T.append(np.exp(step/c)-1)
             
             
-        elif cooling_param[0] == "auto":
+        elif cooling_param[0] == "auto_sa":
+            
+            # recreation of the algorithm described in Simulated Annealing & Boltzmann machines, fintite time approximation
+            
             steps_init = cooling_param[1]
             steps_avg = cooling_param[2]
             delta = cooling_param[3]
@@ -594,6 +597,91 @@ def Generate_Cooling_Schedule(cooling_param:list,steps:int)->list[float]:
                     
                 T.append(T[step]/(1+alpha*T[step]))
             break
+        elif cooling_param[0] == "auto_da":
+            0
+        elif cooling_param[0] == "da_gp":
+            if step == 1:
+                # ── Kalibrierung, einmal pro Schedule ────────────────────────
+                n_steps = cooling_param[1]
+                delta_E_vec = np.asarray(cooling_param[2], dtype=float)
+                lloyd_assign = np.asarray(cooling_param[3], dtype=int)
+                E_Llyod = cooling_param[4]
+                E_start = cooling_param[5]
+
+                # Control-Parameter aus dem Cooling-Vektor (Slots 6-8,
+                # kommen aus der UI); Fallback: bewährte Defaults
+                if len(cooling_param) > 8:
+                    p_hot, p_cold, gamma = cooling_param[6], cooling_param[7], cooling_param[8]
+                else:
+                    p_hot  = 0.3    # Akzeptanz medianer Bergauf-Flip bei t=1
+                    p_cold = 0.01   # Rest-Akzeptanz kleiner (q25) Flip bei t=Ende
+                    gamma  = 0.05   # Deckel: T(1) <= gamma * Landschaftstiefe
+
+                # ── Imbalance-Korrektur des Delta-E-Vektors ──────────────────
+                # Ein unbalancierter Lloyd-Split (diff = n1-n0) erzeugt über
+                # die Balance-Terme einen SYSTEMATISCHEN Fehlergradienten:
+                # Flips der einen Seite sind konstant nach oben verschoben,
+                # die der anderen nach unten. Das ist keine echte Barriere —
+                # unkorrigiert bläht es q50/q25 auf -> T zu hoch, keine
+                # Konvergenz. Korrektur: Seitenmediane auf den gemeinsamen
+                # Mittelwert zentrieren, Quantile aus dem korrigierten Vektor.
+                dE = delta_E_vec
+                bias = 0.0
+                split_diff = 0
+                if 0:
+                    if len(lloyd_assign) == len(dE) and 0 < lloyd_assign.sum() < len(dE):
+                        split_diff = int(2 * lloyd_assign.sum() - len(dE))   # n1 - n0
+                        m0 = np.median(dE[lloyd_assign == 0])
+                        m1 = np.median(dE[lloyd_assign == 1])
+                        mid = 0.5 * (m0 + m1)
+                        bias = 0.5 * abs(m1 - m0)
+                        dE = dE.copy()
+                        dE[lloyd_assign == 0] += mid - m0
+                        dE[lloyd_assign == 1] += mid - m1
+
+                up = dE[dE > 0]
+                if len(up) >= 4:
+                    q25, q50 = np.quantile(up, [0.25, 0.5])
+                else:
+                    # Fallback: ~n/2 Flips ueberbruecken die Tiefe D
+                    D = max(E_start - E_Llyod, 1e-12)
+                    q50 = 2.0 * D / max(len(delta_E_vec), 1)
+                    q25 = 0.5 * q50
+
+                # Scan-Korrektur: der DA prueft pro Step ALLE n Flips und
+                # akzeptiert, sobald EINER durchkommt. Soll die Akzeptanz
+                # pro STEP p sein, muss sie pro Flip ~ p/n sein:
+                #   exp(-dE/T) = p/n   ->   T = dE / ln(n/p)
+                # Ohne diese Korrektur ist T bei grossem n um den Faktor
+                # ~ln(n) zu heiss -> Divergenz oben im Baum.
+                n_vars = max(len(delta_E_vec), 2)
+                T_hot    = q50 / np.log(n_vars / p_hot)
+                T_freeze = max(q25, 1e-12) / np.log(n_vars / p_cold)
+
+                # d FEST auf dem kalibrierten Exponenten: die Zwei-Punkt-
+                # Aufloesung ergibt bei kleinem gemessenen Spread zwangs-
+                # laeufig d < 1 (Wurzel-Verlauf, viel zu flach). Steile
+                # logarithmische Abkuehlung ist die erprobte Form.
+                d = 2.22
+                # c aus BEIDEN Kriterien als Obergrenze — das kaeltere gewinnt:
+                #   Start: T(1) = c/ln2        <= T_hot
+                #   Ende:  T(S) = c/ln(1+S^d)  <= T_freeze  (Einfriergrenze)
+                c = min(T_hot * np.log(2.0),
+                        T_freeze * np.log(1.0 + n_steps ** d))
+                D = max(E_start - E_Llyod, 0.0)
+                if D > 0:
+                    c = min(c, gamma * D * np.log(2.0))       # Warmstart nie einschmelzen
+
+                while len(cooling_param) < 11: cooling_param.append(0.0)
+                cooling_param[9] = c    # Cache fuer die restlichen Steps
+                cooling_param[10] = d   # (Slots 6-8 = p_hot/p_cold/gamma)
+                print("da_gp: q50=%.4g q25=%.4g (diff=%d, bias=%.4g) -> "
+                      "c=%.4g d=%.3g  (T1=%.4g, Tend=%.4g)"
+                      % (q50, q25, split_diff, bias, c, d,
+                         c / np.log(2.0), c / np.log(1.0 + n_steps ** d)))
+            c = cooling_param[9]
+            d = cooling_param[10]
+            T.append(c / (np.log(1 + pow(step, d))))
     return T[:steps]
 
 def Generate_Number_Partitioning_List(length,upper_bound):

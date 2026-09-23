@@ -25,7 +25,7 @@ if __name__ == "__main__":
     pbf_var_dict = createPolyDict(pbf,int(r*s*anz_bit)) 
     print("pbf generation time:" + str(time.time() - start_time_gen))
     
-    cooling_param = ["auto", 5000,250,300]
+    cooling_param = ["auto_sa", 5000,250,300]
     #cooling_param = ["logarithmic", 10000000000,0]
     #cooling_param = ["exponential", 1,1.5]
     seed_gen = 76243

@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
     printoutput = True
 
-    #cooling_param = ["auto", 5000,250,4.64254]
+    #cooling_param = ["auto_sa", 5000,250,4.64254]
     #cooling_param = ["exponential", 1000000,1000000]
     seed_gen = 76243
     seed_rand =[]
@@ -70,7 +70,7 @@ if __name__ == "__main__":
 # -> data download: setshttps://www.cs.ubc.ca/~hoos/SATLIB/benchm.html#:~:text=Uniform%20Random%2D3%2DSAT%2C,100%20instances%2C%20all%20sat/unsat 
     #set path and 
     #set path and 
-    path =  "/Users/lino/Documents/python/AnnealingCopApproximator/3SAT_DATA/uf50-218"
+    path =  "/Users/lino/Documents/python/annealing-cop-approximator/3SAT_DATA/uf50-218"
     #variables = 250
     #path= "/Users/lino/Documents/python/fujitsuclone/3SAT_DATA/UUF250.1065.100_satifyable/uuf250-015.cnf"
     #variables = 250

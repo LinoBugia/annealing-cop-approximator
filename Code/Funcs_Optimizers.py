@@ -208,14 +208,58 @@ def pbf_min_solver(pbf : dict[tuple:float],pbf_var_dict: dict[int:tuple] ,
     #else:
     #    print("Approximated Time eval "+str(time_Edelta*steps*len(pbf_var_dict.keys())*num_MC))
     cores_to_use = 8
-    if cooling_param[0]=="auto":
+    if cooling_param[0]=="auto_sa":
         cooling_param.append(E_init)
         cooling_param.append(pbf)
         cooling_param.append(pbf_var_dict)
         cooling_param.append(initial_varAssignment.copy())
         T = Generate_Cooling_Schedule(cooling_param,steps)
-    else:    
+    elif cooling_param[0] == "da_gp":
+        # Slot 2 kommt als None an: Delta-E-Skala des Laufs = Delta-E am
+        # TATSÄCHLICHEN Startassignment (deltaE_init liegt oben schon vor).
+        # NICHT an der Lloyd-Lösung messen: deren Bergauf-Barrieren sind um
+        # Größenordnungen größer als am Startpunkt -> T wäre viel zu heiß
+        # (Random Walk statt Konvergenz, besonders bei großem n).
+        try:
+            cooling_param[2] = np.asarray(deltaE_init, dtype=float)
+        except NameError:
+            # Fallback (Algorithmus ohne deltaE_init): an der Lloyd-Lösung
+            lloyd_ass = dict(zip(range(len(pbf_var_dict.keys())), cooling_param[3]))
+            cooling_param[2] = np.array(
+                [Eval_Delta_Energy(pbf, pbf_var_dict[i], lloyd_ass, i)
+                    for i in range(len(lloyd_ass))])
+        if offset_increase_rate == "auto_gp":
+            # E_Offset dynamisch auf die gemessene Delta-E-Skala legen:
+            # Barriere B ~ q50 der Bergauf-Flips an der Lloyd-Lösung,
+            # Flucht nach ~k_escape abgelehnten Schritten -> B/k_escape.
+            # Vorher denselben Imbalance-Bias rausrechnen wie im Cooling
+            # (unbalancierter Split verschiebt die Seiten systematisch).
+            k_escape = 25.0
+            dE_off = cooling_param[2]
+            la = np.asarray(cooling_param[3], dtype=int)
+            if len(la) == len(dE_off) and 0 < la.sum() < len(la):
+                m0 = np.median(dE_off[la == 0]); m1 = np.median(dE_off[la == 1])
+                mid = 0.5 * (m0 + m1)
+                dE_off = dE_off.copy()
+                dE_off[la == 0] += mid - m0
+                dE_off[la == 1] += mid - m1
+            up = dE_off[dE_off > 0]
+            offset_increase_rate = float(np.quantile(up, 0.5)) / k_escape if len(up) else 0.0
+            print("auto_gp offset: q50(dE+)/%g -> offset_increase_rate = %.6g"
+                  % (k_escape, offset_increase_rate))
+        T = Generate_Cooling_Schedule(cooling_param, steps)
+    else:
         T = Generate_Cooling_Schedule(cooling_param,steps)
+    if offset_increase_rate == "auto_gp":
+        # Fallback ohne da_gp-Cooling: Delta-E-Skala vom Startassignment
+        try:
+            dE = np.asarray(deltaE_init, dtype=float)
+            up = dE[dE > 0]
+            offset_increase_rate = float(np.quantile(up, 0.5)) / 25.0 if len(up) else 0.0
+        except NameError:
+            offset_increase_rate = 0.0
+        print("auto_gp offset (Fallback, dE am Start): offset_increase_rate = %.6g"
+              % offset_increase_rate)
         
         
     if type_alg == "digitalAnnealing_parallel":

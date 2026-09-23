@@ -23,7 +23,7 @@ if __name__ == "__main__":
         pbf_var_dict = createPolyDict(pbf,len(numbers)) 
         #problem = "NP"
         #name_run = "800dwadawda0;1000"
-    file_path = "/Users/lino/Documents/python/AnnealingCopApproximator/Code/Data.csv"
+    file_path = "/Users/lino/Documents/python/annealing-cop-approximator/Code/Data.csv"
     
     for j in range(15):
         seed_gen = random.uniform(0,1000)
