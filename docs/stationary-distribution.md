@@ -16,8 +16,7 @@ chains at a constant temperature, by enumerating the state space ($2^n \le$
   [Fukushima-Kimura et al.](references.md#papers));
 - $\delta = \pi^{DA} - \pi^{SA}$ and several analytic approximations of it, each
   with its $R^2$ against the exact value:
-  - `delta_high_T` — the closed-form high-temperature law
-    ([findings.md, §1](findings.md#1-the-high-temperature-law));
+  - `delta_high_T` — a closed-form first-order law for high temperatures;
   - `delta_first_order_SA` / `delta_series_SA` — first and higher orders of the
     perturbation series around the SA chain, together with the spectral radius
     that tells where the series stops converging;

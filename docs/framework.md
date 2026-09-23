@@ -114,8 +114,10 @@ P^{DA}(x, \theta_k(x)) = \sum_{\substack{S \subseteq K : \\ k \in S}} \frac{1}{|
 
 and $P^{DA}(x, x) = \prod_i \big(1 - e^{-\Delta E_i(x)^+ / T}\big)$ when nothing
 is accepted. DA does **not** satisfy detailed balance, so its stationary
-distribution $\pi^{DA}$ differs from $\pi^G$ — by how much, and in which
-direction, is the subject of [findings.md](findings.md). The implementation
+distribution $\pi^{DA}$ differs from $\pi^G$. By how much, and in which
+direction, is ongoing research; for small instances
+[stationary-distribution.md](stationary-distribution.md) computes the
+difference exactly. The implementation
 additionally uses a **dynamic energy offset** (escape mechanism): a value
 $E_{\text{off}}$, initially 0, is *subtracted* from every $\Delta E_i$ before
 the acceptance test. Whenever no flip is accepted in a step, $E_{\text{off}}$
@@ -129,10 +131,10 @@ theorem for SA; this was proved by
 [Fukushima-Kimura et al. (2023)](references.md#papers) for the parallel-trial
 chain. With the escape mechanism the process is still a Markov chain, on the
 extended and still finite state space of pairs (state, number of consecutive
-idle steps), but Hajek's guarantee presumably does not survive: at a fixed
-offset rate it no longer concentrates on $\arg\min E$ as $T \to 0$ (see
-[findings.md, point 4](findings.md#4-what-this-suggests-for-choosing-annealing-parameters)).
-What replaces the guarantee is the subject of ongoing research.
+idle steps), but Hajek's guarantee presumably does not survive: exact
+computations on small instances suggest that at a fixed offset rate the chain
+need not concentrate on $\arg\min E$ as $T \to 0$. What replaces the guarantee
+is the subject of ongoing research.
 
 ## Incremental delta-energy update
 

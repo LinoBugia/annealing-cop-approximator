@@ -36,9 +36,6 @@ Key observations:
 - Despite the per-step overhead, DA's median final energy is two to three orders
   of magnitude below SA's at equal compute (median ratio 225–1,522 for the
   cooling constants where DA's median is non-zero).
-- [findings.md](findings.md#3-where-da-is-actually-faster-the-speed-up-ramp)
-  explains part of this: at the temperatures where annealing does its work, DA's
-  Markov chain relaxes up to $n$ times faster than SA's.
 
 ## Regenerating the figures
 

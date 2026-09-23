@@ -13,9 +13,8 @@ It is an experimenting library first. Every experiment of the thesis lives
 here, the solver minimizes any pseudo-Boolean function, and an exact toolkit
 computes the stationary distributions of both Markov chains
 ([toolkit](docs/stationary-distribution.md)) — which has since made the
-repository the testbed for an ongoing comparison of the two chains
-([findings](docs/findings.md)). It is not the fastest way to solve a QUBO; for
-that, use the batched DA engine
+repository the testbed for an ongoing comparison of the two chains. It is not
+the fastest way to solve a QUBO; for that, use the batched DA engine
 [annealing-qubo-optimizer](https://github.com/LinoBugia/annealing-qubo-optimizer).
 
 ## Core API
@@ -110,7 +109,6 @@ Types, columns and a format caveat: [run-output.md](docs/run-output.md).
 | [docs/run-output.md](docs/run-output.md) | Return values and the files written with `save_csv=True` |
 | [docs/problems.md](docs/problems.md) | Supported problems, graph partitioning, optional dependencies, running the scripts, benchmark data |
 | [docs/stationary-distribution.md](docs/stationary-distribution.md) | The exact toolkit for $\pi^{SA}$, $\pi^{DA}$ and their difference |
-| [docs/findings.md](docs/findings.md) | Unreleased research: high-temperature law, temperature scale, speed-up ramp, parameter choice, with proof sketches |
 | [docs/performance.md](docs/performance.md) | Benchmarks, step-time overhead, scalability, comparison with Fujitsu's hardware |
 | [docs/references.md](docs/references.md) | Papers, Fujitsu sources, benchmark data, libraries |
 | [Masterarbeitspräsentation.pdf](Masterarbeitspr%C3%A4sentation.pdf) | The thesis presentation (German) |
