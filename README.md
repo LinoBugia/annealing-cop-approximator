@@ -247,7 +247,7 @@ For join ordering (`Skript_Join_Ordering.py`; also needs the two generator modul
 pip install docplex dimod qiskit-optimization
 ```
 
-> **Note:** Some experiment scripts contain hardcoded absolute file paths (`Boxplot.py`, `Skript_Solve_3SAT.py`, `Skript_Solve_NumberPartitioning.py`, `Skript_IsingModel_Simulator.py`). Adjust these to your local setup before running.
+> **Note:** Several scripts contain hardcoded absolute file paths from the author's machine (`Boxplot.py`, `Funcs_Annealing2.py`, `Skript_IsingModel_Simulator.py`, `Skript_Join_Ordering.py`, `Skript_Solve_3SAT.py`, `Skript_Solve_GraphPartitioning.py`, `Skript_Solve_NumberPartitioning.py`, `Skript_Solve_Traveling_Salesman.py`). Adjust these to your local setup before running.
 
 ---
 
