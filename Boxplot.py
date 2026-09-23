@@ -1,31 +1,34 @@
+import os
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 
 # ------------------------------
-# CSV einlesen
+# Read the CSV
 # ------------------------------
-df = pd.read_csv("/Users/lino/Documents/python/annealing-cop-approximator/Code/Data.csv")
+HERE = os.path.dirname(os.path.abspath(__file__))
+df = pd.read_csv(os.path.join(HERE, "Code", "Data.csv"))
 
-# Spalten mit den Werten (0..20)
+# Columns holding the values (0..20)
 value_columns = df.columns[2:]
 
-# Alle T-Werte
+# All cooling constants (column T)
 T_values = sorted(df['T'].unique())
 
 # ------------------------------
-# Daten vorbereiten
+# Prepare the data
 # ------------------------------
 data = []
 positions = []
 colors = []
-width = 0.35  # Abstand zwischen DA/SA Boxplots
+width = 0.35  # spacing between the DA and SA boxes
 
 for i, T in enumerate(T_values):
     # DA
     da_vals = df[(df['T'] == T) & (df['type'] == 'DA')][value_columns].values.flatten()
-    # NaN entfernen und 0 durch minimalen Wert ersetzen (log Skala)
+    # replace NaN and 0 by a small value so they show on the log scale
     da_vals = np.where(np.isnan(da_vals) | (da_vals <= 0), 0.1, da_vals)
     data.append(da_vals)
     positions.append(i - width/2)
@@ -39,36 +42,36 @@ for i, T in enumerate(T_values):
     colors.append('blue')
 
 # ------------------------------
-# Boxplot zeichnen
+# Draw the boxplot
 # ------------------------------
 fig, ax = plt.subplots(figsize=(10,6))
 bp = ax.boxplot(data, positions=positions, widths=width, patch_artist=True, showfliers=True)
 
-# Farben zuweisen
+# Assign colours
 for patch, color in zip(bp['boxes'], colors):
     patch.set_facecolor(color)
     patch.set_alpha(0.6)
 
 # ------------------------------
-# Logarithmische Skala
+# Logarithmic scale
 # ------------------------------
 ax.set_yscale('log')
-ax.set_ylabel('Werte (log scale)')
+ax.set_ylabel('final energy (log scale)')
 
 # ------------------------------
-# Achsen, Labels, Legende
+# Axes, labels, legend
 # ------------------------------
 ax.set_xticks(range(len(T_values)))
 ax.set_xticklabels(T_values)
-ax.set_xlabel('T')
-ax.set_title('Zahlenpartitionierung: DA (rot) vs SA (blau) mit gleichem Rechenaufwand')
+ax.set_xlabel('cooling constant c')
+ax.set_title('Number partitioning, n = 1500: DA (red) vs SA (blue) at equal compute')
 ax.grid(True, axis='y', which='both', linestyle='--', alpha=0.5)
 
-# Legende
+# Legend
 legend_elements = [Patch(facecolor='red', label='DA', alpha=0.6),
                    Patch(facecolor='blue', label='SA', alpha=0.6)]
 ax.legend(handles=legend_elements)
 
 plt.tight_layout()
-plt.savefig("grouped_boxplot_da_sa_log.png", dpi=300)
+plt.savefig(os.path.join(HERE, "docs", "img", "grouped_boxplot_da_sa_log.png"), dpi=300)
 plt.show()
