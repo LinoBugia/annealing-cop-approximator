@@ -71,7 +71,7 @@ $$P : \mathbb{F}_2^n \to \mathbb{R}, \quad P(x) = \sum_{\substack{S \subseteq \{
 
 where $d$ is the degree of the PBF. This general representation covers both
 **QUBO** ($d \le 2$) and **PUBO** ($d > 2$, e.g. 3-SAT). The goal in all cases
-is to find the binary assignment $x^* \in \mathbb{F}_2^n$ that minimizes $P(x)$.
+is to find the binary assignment $x^\ast \in \mathbb{F}_2^n$ that minimizes $P(x)$.
 In code, a PBF is a Python `dict` from monomial tuples to coefficients — see
 [configuration.md](docs/configuration.md#input-the-pbf-dictionary).
 
@@ -108,7 +108,7 @@ Types, columns and a format caveat: [run-output.md](docs/run-output.md).
 | [docs/run-output.md](docs/run-output.md) | Return values and the files written with `save_csv=True` |
 | [docs/problems.md](docs/problems.md) | Supported problems, graph partitioning, optional dependencies, running the scripts, benchmark data |
 | [docs/stationary-distribution.md](docs/stationary-distribution.md) | The exact toolkit for $\pi^{SA}$, $\pi^{DA}$ and their difference |
-| [docs/findings.md](docs/findings.md) | Preliminary findings: high-temperature law, temperature scale, speed-up ramp, parameter choice |
+| [docs/findings.md](docs/findings.md) | Unreleased research: high-temperature law, temperature scale, speed-up ramp, parameter choice, with proof sketches |
 | [docs/performance.md](docs/performance.md) | Benchmarks, step-time overhead, scalability, comparison with Fujitsu's hardware |
 | [docs/references.md](docs/references.md) | Papers, Fujitsu sources, benchmark data, libraries |
 | [Masterarbeitspräsentation.pdf](Masterarbeitspr%C3%A4sentation.pdf) | The thesis presentation (German) |
