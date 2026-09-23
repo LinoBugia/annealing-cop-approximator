@@ -21,6 +21,7 @@ This repository contains the practical implementation component of the Master's 
 - [Preliminary Findings about DA](#preliminary-findings-about-da)
 - [Scalability & Hardware Context](#scalability--hardware-context)
 - [References](#references)
+- [License](#license)
 
 ---
 
@@ -207,7 +208,8 @@ annealing-cop-approximator/
 │   └── Data.csv, Data_4.csv, data_thesis_SAT.txt
 │
 ├── 3SAT_DATA/                         # SATLIB benchmark instances (.cnf)
-├── TSP_data/                          # TSPLIB instances
+├── TSP_data/ALL_tsp/                  # TSPLIB instances (.tsp, optimal tours)
+├── LICENSE                            # MIT
 ├── Boxplot.py                         # DA vs. SA boxplot (matplotlib)
 ├── Test_symb_bib_stat_distrib.py      # sympy toy example: DA stationary distribution for 2 variables
 ├── Aggregiert.csv
@@ -437,3 +439,9 @@ For the large-scale service the comparison is therefore algorithmic, not archite
 
 - `lk_heuristic` — Lin-Kernighan-Helsgaun TSP heuristic: https://github.com/pfayle/lk_heuristic
 - `p_tqdm` — Parallel tqdm progress bars: https://github.com/swansonk14/p_tqdm
+
+---
+
+## License
+
+The code in this repository is released under the [MIT License](LICENSE). The benchmark data in `3SAT_DATA/` (SATLIB) and `TSP_data/` (TSPLIB) is redistributed from the respective public benchmark collections and remains subject to their terms; the join-ordering generator modules referenced in `Skript_Join_Ordering.py` are GPL-licensed and therefore not included.
