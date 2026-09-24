@@ -104,7 +104,7 @@ Types, columns and a format caveat: [run-output.md](docs/run-output.md).
 
 | Document | Contents |
 |----------|----------|
-| [docs/framework.md](docs/framework.md) | Modification maps, bit flip and city swap, the SA and DA chains, convergence, incremental update |
+| [docs/framework.md](docs/framework.md) | Modification maps, bit flip and city swap, the SA and DA chains, incremental update, stationary distributions and convergence, outlook on comparing the chains |
 | [docs/configuration.md](docs/configuration.md) | PBF input objects, every `pbf_min_solver` argument, `type_alg`, cooling schedules, escape rate |
 | [docs/run-output.md](docs/run-output.md) | Return values and the files written with `save_csv=True` |
 | [docs/problems.md](docs/problems.md) | Supported problems, graph partitioning, optional dependencies, running the scripts, benchmark data |

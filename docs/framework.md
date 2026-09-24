@@ -1,14 +1,17 @@
 # Framework
 
-The mathematical model behind every algorithm in this repository: modification
-maps, the two moves used here, the SA and DA Markov chains, their convergence,
-and the incremental delta-energy update.
+The mathematical model behind every algorithm in this repository, built up in
+order: modification maps, the two moves used here, the SA and DA Markov chains
+with the incremental delta-energy update, their stationary distributions and
+convergence, and an outlook on comparing the two chains.
 
 - [The framework: modification maps](#the-framework-modification-maps)
 - [The modifications used here](#the-modifications-used-here)
 - [Simulated Annealing (SA)](#simulated-annealing-sa)
 - [Digital Annealing (DA)](#digital-annealing-da)
 - [Incremental delta-energy update](#incremental-delta-energy-update)
+- [Stationary distributions and convergence](#stationary-distributions-and-convergence)
+- [Outlook: comparing the chains at equal temperature](#outlook-comparing-the-chains-at-equal-temperature)
 
 ## The framework: modification maps
 
@@ -34,12 +37,22 @@ modification,
 \Delta f_k(x) := f(\varphi_k(x)) - f(x),
 ```
 
-and a modification is only useful if $\Delta f_k$ can be evaluated cheaply. Two
-properties of the chains below follow from the definition alone: they are
-**irreducible** (any two states are joined by a sequence of modifications, each
-of positive probability at $T \gt 0$), which makes the stationary distribution
-unique, and **aperiodic** (a state whose modifications are all rejected returns
-to itself in one step), which makes the chain converge to it.
+and a modification is only useful if $\Delta f_k$ can be evaluated cheaply.
+
+**Remark: self-inverse modifications.** The definition deliberately leaves open
+whether a modification undoes itself, so that problems such as graph coloring,
+whose natural recoloring moves do not, stay inside the framework. Every formula
+in this repository, however, assumes *self-inverse* modifications,
+
+```math
+\varphi_k(\varphi_k(x)) = x \quad \text{for all } x \in M,\ k \in K,
+```
+
+so that the way back from $\varphi_k(x)$ to $x$ is again modification $k$, with
+$\Delta f_k(\varphi_k(x)) = -\Delta f_k(x)$. This makes SA's proposal symmetric
+and hence its chain reversible. Both moves used here, the bit flip and the city
+swap, are self-inverse. The theory can be carried over to modifications that are
+not, but the mathematics gets harder.
 
 ## The modifications used here
 
@@ -113,28 +126,15 @@ P^{DA}(x, \theta_k(x)) = \sum_{\substack{S \subseteq K : \\ k \in S}} \frac{1}{|
 ```
 
 and $P^{DA}(x, x) = \prod_i \big(1 - e^{-\Delta E_i(x)^+ / T}\big)$ when nothing
-is accepted. DA does **not** satisfy detailed balance, so its stationary
-distribution $\pi^{DA}$ differs from $\pi^G$. By how much, and in which
-direction, is ongoing research; for small instances
-[stationary-distribution.md](stationary-distribution.md) computes the
-difference exactly. The implementation
-additionally uses a **dynamic energy offset** (escape mechanism): a value
-$E_{\text{off}}$, initially 0, is *subtracted* from every $\Delta E_i$ before
-the acceptance test. Whenever no flip is accepted in a step, $E_{\text{off}}$
-grows by `offset_increase_rate`; as soon as a flip is accepted it is reset to 0.
-This turns the exponentially long waiting time at a local minimum into a linear
-one.
-
-**Convergence.** Without the escape mechanism the DA chain converges to the
-global minima under a logarithmic cooling schedule — the analogue of Hajek's
-theorem for SA; this was proved by
-[Fukushima-Kimura et al. (2023)](references.md#papers) for the parallel-trial
-chain. With the escape mechanism the process is still a Markov chain, on the
-extended and still finite state space of pairs (state, number of consecutive
-idle steps), but Hajek's guarantee presumably does not survive: exact
-computations on small instances suggest that at a fixed offset rate the chain
-need not concentrate on $\arg\min E$ as $T \to 0$. What replaces the guarantee
-is the subject of ongoing research.
+is accepted. DA does **not** satisfy detailed balance with respect to $\pi^G$,
+and in general $\pi^G$ is not its stationary distribution
+([outlook](#outlook-comparing-the-chains-at-equal-temperature)). The
+implementation additionally uses a **dynamic energy offset** (escape
+mechanism): a value $E_{\text{off}}$, initially 0, is *subtracted* from every
+$\Delta E_i$ before the acceptance test. Whenever no flip is accepted in a
+step, $E_{\text{off}}$ grows by `offset_increase_rate`; as soon as a flip is
+accepted it is reset to 0. This turns the exponentially long waiting time at a
+local minimum into a linear one.
 
 ## Incremental delta-energy update
 
@@ -145,3 +145,50 @@ changes by a local correction (see
 53–55). This incremental update is one of the core efficiency contributions of
 this codebase; it keeps DA's per-step cost within a small factor of SA's instead
 of a factor $n$ (measurements in [performance.md](performance.md#results)).
+
+## Stationary distributions and convergence
+
+**Existence.** At constant $T$ with $0 \lt T \lt \infty$, and for DA without the
+escape offset, both chains move from $x$ to each $\varphi_k(x)$ with
+probability at least $e^{-\Delta f_k(x)^+ / T} / |K| \gt 0$. Chaining such
+steps along the paths the definition guarantees gives $P^m(y, x) \gt 0$ for
+all $x, y$: the chains are **irreducible**, so the stationary distribution is
+unique. They are **aperiodic** as soon as one state $x$ has $P(x, x) \gt 0$:
+every state can return to itself through $x$ in some $m$ steps, and in $m + 1$
+by staying at $x$ once, so the gcd of its return times is 1. For SA such an $x$
+exists whenever $f$ is not constant, for DA whenever $f$ has a strict local
+minimum; otherwise the chain on $\mathbb{F}_2^n$ has period 2.
+
+**Convergence under cooling.** Without the escape offset, the DA chain
+converges to the global minima under a sufficiently slow logarithmic cooling
+schedule, the analogue of Hajek's theorem for SA; this was proved by
+[Fukushima-Kimura et al. (2023)](references.md#papers) for the parallel-trial
+chain. With the offset, the process can still be read as a Markov chain on a
+finite state space, namely on pairs $(x, j)$ of the current state and the
+number $j$ of consecutive steps without an accepted modification. The offset is
+determined by $j$, so the current pair carries all the information the next
+step depends on, and earlier steps have no further influence; $j$ stays
+bounded, because once the offset reaches the smallest uphill difference at $x$,
+a modification is accepted with certainty. We state this reading with some
+caution, since Fukushima-Kimura et al. assess the offset mechanism differently.
+Whether a result in the spirit of Hajek's theorem holds for this chain is not
+proven and remains open; we suspect that it does not.
+
+## Outlook: comparing the chains at equal temperature
+
+SA and DA are built from the same ingredients, the modifications $\varphi_k$
+and the acceptance probabilities $e^{-\Delta f_k(x)^+ / T}$. SA runs the
+acceptance test for one modification drawn at random, DA runs it for all of
+them; in this sense SA's step is contained in DA's. Comparing the two chains at
+the same temperature $T$ therefore isolates exactly this difference. The
+quantity studied here is
+
+```math
+\delta(x) = \pi^{DA}(x) - \pi^{SA}(x).
+```
+
+Since $\pi^{SA} = \pi^G$ is known in closed form, $\delta$ determines
+$\pi^{DA}$ directly, and how the two distributions relate is essential for
+judging which algorithm is preferable at which temperature. This is ongoing
+work; [stationary-distribution.md](stationary-distribution.md) computes
+$\delta$ exactly for small instances.
