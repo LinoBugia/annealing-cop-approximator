@@ -20,6 +20,17 @@ Final energy on a log scale; energy 0 is drawn as 0.1, and each box also holds
 two
 padding values of 0.1 from an empty column in `Data.csv`.
 
+**An impression, not a verdict.** This compares SA and DA at equal compute on
+number partitioning, an instance on which the chain mostly just descends,
+with the same cooling schedule for both and cooling constants chosen so that
+both should work. It is no real comparison of the two algorithms: the outcome
+always depends on the problem and on the temperature. What it does give is an
+impression of how much faster DA converges at the same temperature. We are
+working out the theory of that speed-up and plan to publish it. For DA at
+scale see [annealing-qubo-optimizer](https://github.com/LinoBugia/annealing-qubo-optimizer),
+whose [tuning guide](https://github.com/LinoBugia/annealing-qubo-optimizer/blob/main/docs/tuning.md#background-why-the-schedules-end-where-they-do)
+describes the temperature band in which the speed-up appears.
+
 ![Final energy of DA (red) and SA (blue) per cooling constant, log scale](img/grouped_boxplot_da_sa_log.png)
 
 **Time per step.** Time for 300 iterations against the number of variables
@@ -49,14 +60,25 @@ from any working directory and write straight into `docs/img/`.
 
 ## This implementation
 
-The implementation works directly on the **PBF dictionary** — no dense matrix is
-required — and updates the delta-energy vector incrementally
-([framework.md](framework.md#incremental-delta-energy-update)). For sparse
-problems (3-SAT, graph-structured QUBOs) this scales far better than dense
-matrix approaches and keeps memory and arithmetic close to the theoretical
-minimum.
+The implementation works directly on the **PBF dictionary** — any degree, no
+matrix — and updates the delta-energy vector incrementally
+([framework.md](framework.md#incremental-delta-energy-update)): after an
+accepted flip only the entries that share a monomial with it change. That
+keeps a DA step within the small factor of an SA step measured above, and it
+keeps every monomial inspectable, which is what the experiments here need —
+including problems of degree three and more, such as 3-SAT.
 
-For dense QUBOs there is a TensorFlow variant, see
+It is not the fastest way to run DA on a QUBO. For degree 2 the companion
+library [annealing-qubo-optimizer](https://github.com/LinoBugia/annealing-qubo-optimizer)
+holds the couplings as a sparse matrix and evaluates all `n` flips of a step
+as one vectorised operation, over many trials at once. On the same dense
+problems, `n` = 100 to 2 000, it is 19× to 41× faster per trial than this
+implementation with one trial each, and about 76× per trial with eight
+trials batched. It gets down to about 12 ns per evaluated flip and holds
+262 144 variables of bounded degree in 202 MB
+([measurements](https://github.com/LinoBugia/annealing-qubo-optimizer/blob/main/docs/performance.md#against-the-reference-library)).
+
+For dense QUBOs on a GPU there is also the TensorFlow variant here, see
 [configuration.md](configuration.md#algorithms).
 
 ## Fujitsu's Digital Annealer
@@ -84,10 +106,13 @@ For the large-scale service the comparison is therefore algorithmic, not
 architectural: the same update rule and the same escape mechanism, hence
 comparable solution quality per step. What Fujitsu adds is an engineered
 software stack around it (vectorised evaluation, replica exchange, automatic
-parameter selection, distribution across servers); what this repository adds is
-the incremental delta-energy update for sparse PBFs. We have not benchmarked
-head-to-head against the service — the claim is algorithmic equivalence, not
-measured parity.
+parameter selection, distribution across servers). What this repository adds
+is the incremental delta-energy update on PBFs of any degree. The vectorised,
+batched evaluation for sparse QUBOs is in
+[annealing-qubo-optimizer](https://github.com/LinoBugia/annealing-qubo-optimizer),
+which fits problems beyond the fourth generation's 100,000 variables into a
+laptop's memory. Neither has been benchmarked head-to-head against the
+service — the claim is algorithmic equivalence, not measured parity.
 
 Sources for the generations and problem sizes:
 [references.md](references.md#fujitsu-digital-annealer).
