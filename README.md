@@ -76,6 +76,20 @@ is to find the binary assignment $x^\ast \in \mathbb{F}_2^n$ that minimizes $P(x
 In code, a PBF is a Python `dict` from monomial tuples to coefficients — see
 [configuration.md](docs/configuration.md#input-the-pbf-dictionary).
 
+**On the notation.** We write $\mathbb{F}_2^n$ on purpose: what goes in is a
+vector of $n$ components with two values each, and $\mathbb{F}_2$ names that
+two-element object without fixing how it is written. Its representations —
+$\lbrace 0,1\rbrace$, $\lbrace -1,+1\rbrace$, true and false — are the same
+object: carried over by the obvious bijection, they are isomorphic as groups,
+rings and fields. In the formula we take
+$\lbrace 0,1\rbrace \subset \mathbb{R}$, so that the scalar multiplication of
+the real coefficients $a_S$ with the $x_k$ is defined. Every other choice of two values gives another
+polynomial for the same function, so a PBF has infinitely many
+representations; $\lbrace -1,+1\rbrace$ gives the Walsh–Hadamard view, the
+Fourier view of the hypercube that the fast Walsh–Hadamard transform works
+in. We use $\lbrace 0,1\rbrace$ for efficiency: a monomial contributes $a_S$
+exactly when all its variables are 1, so its evaluation stops at the first 0.
+
 | | Simulated Annealing | Digital Annealing |
 |---|---|---|
 | One step | draw one bit flip, apply the Metropolis test | test all $n$ bit flips, pick uniformly among the accepted |
